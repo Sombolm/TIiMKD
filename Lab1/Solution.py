@@ -119,6 +119,7 @@ class Solution:
             text += nextChar[0][-1]
 
         print(text)
+        print(self.countAverageWordLengthFromString(text))
 
         return
 
