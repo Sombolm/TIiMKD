@@ -44,10 +44,10 @@ class Solution:
     def sortAccurances(self, accurances: dict):
         return sorted(accurances.items(), key=lambda x: x[1], reverse=True)
 
-    def ShowTopAndBottomNChars(self, accurances: dict):
+    def ShowTopAndBottomNChars(self, accurances: dict, n: int):
         sortedAccurances = self.sortAccurances(accurances)
-        #print("Top 5 characters: ", sortedAccurances[:5])
-        #print("Bottom 5 characters: ", sortedAccurances[-5:])
+        print("Top 5 characters: ", sortedAccurances[:n])
+        print("Bottom 5 characters: ", sortedAccurances[-n:])
 
     def countAverageWordLengthFromFile(self, path: str):
         file = open(path, 'r')
@@ -70,7 +70,7 @@ class Solution:
             sum_ += len(word)
             count += 1
 
-        #print("Average word length: ", sum_ / count)
+        print("Average word length: ", sum_ / count)
 
     def loadTextFile(self, path: str):
         file = open(path, 'r')
@@ -100,6 +100,13 @@ class Solution:
 
         return text, accurances
 
+    def countAccurancesFromText(self, text: str):
+        accurances = defaultdict(int)
+        for char in text:
+            accurances[char] += 1
+
+        return accurances
+
     def generateMarkovText(self, order, filePath, textLength):
         probability = self.getConditionalProbabilityAccordingToPrevNCharsV2(filePath, order)
         text = ''
@@ -113,13 +120,14 @@ class Solution:
         for i in range(textLength):
             key = text[-order:]
             possibleChars = [char for char in probability if char.startswith(key)]
-            propabilitiesForChars = [probability[char] for char in possibleChars]
+            probabilitiesForChars = [probability[char] for char in possibleChars]
 
-            nextChar = random.choices(possibleChars, propabilitiesForChars, k=1)
+            nextChar = random.choices(possibleChars, probabilitiesForChars, k=1)
             text += nextChar[0][-1]
 
         print(text)
         print(self.countAverageWordLengthFromString(text))
+        print(self.ShowTopAndBottomNChars(self.countAccurancesFromText(text),5))
 
         return
 
