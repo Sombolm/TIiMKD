@@ -6,14 +6,37 @@ class Solution:
     def getConditionalProbabilityAccordingToPrevNChars(self, filePath, n) -> dict:
         file = open(filePath, 'r')
         accurances = defaultdict(int)
+        conditionAccurances = defaultdict(int)
+
+        for line in file:
+            for i in range(n, len(line)):
+                key = line[i -n: i + 1]
+                accurances[key] += 1
+                conditionAccurances[key[:-1]] += 1
+
+        overallSum = sum(accurances.values())
+        sumPropability = {key: accurances[key] / overallSum for key in accurances}
+
+        conditionPropabilitySum = sum(conditionAccurances.values())
+        conditionProbability = {key: conditionAccurances[key] / conditionPropabilitySum for key in conditionAccurances}
+
+        conditionalProbability = {key: sumPropability[key] / conditionProbability[key[:-1]] for key in sumPropability}
+        file.close()
+
+        return conditionalProbability
+
+    def getConditionalProbabilityAccordingToPrevNCharsV2(self, filePath, n) -> dict:
+        file = open(filePath, 'r')
+        accurances = defaultdict(int)
 
         for line in file:
             for i in range(n, len(line)):
                 key = line[i -n: i + 1]
                 accurances[key] += 1
 
-        overallSum = sum(accurances.values())
-        conditionalProbability = {key: accurances[key] / overallSum for key in accurances}
+        probabilitySum = sum(accurances.values())
+        conditionalProbability = {key: accurances[key] / probabilitySum for key in accurances}
+
         file.close()
 
         return conditionalProbability
@@ -49,7 +72,6 @@ class Solution:
 
         #print("Average word length: ", sum_ / count)
 
-
     def loadTextFile(self, path: str):
         file = open(path, 'r')
         accurances = defaultdict(int)
@@ -67,9 +89,9 @@ class Solution:
 
         return accurances, propability
 
-    def generateText(self, propability: defaultdict, length: int):
+    def generateText(self, probability: defaultdict, length: int):
         text = ''
-        chars = random.choices(list(propability.keys()), list(propability.values()), k=length)
+        chars = random.choices(list(probability.keys()), list(probability.values()), k=length)
         accurances = defaultdict(int)
 
         for char in chars:
@@ -79,24 +101,29 @@ class Solution:
         return text, accurances
 
     def generateMarkovText(self, order, filePath, textLength):
-        propability = self.getConditionalProbabilityAccordingToPrevNChars(filePath, order)
+        probability = self.getConditionalProbabilityAccordingToPrevNCharsV2(filePath, order)
         text = ''
 
-        chars = [x[-1] for x in propability.keys()]
-        chosenChars = random.choices(chars, list(propability.values()), k=textLength)
+        #First chars
+        chosenChars = random.choices(list(probability.keys()), list(probability.values()), k=1)
+        text += chosenChars[0]
 
-        accurances = defaultdict(int)
+        textLength -= order
 
-        for char in chosenChars:
-            text += str(char)
-            accurances[char] += 1
+        for i in range(textLength):
+            key = text[-order:]
+            possibleChars = [char for char in probability if char.startswith(key)]
+            propabilitiesForChars = [probability[char] for char in possibleChars]
+
+            nextChar = random.choices(possibleChars, propabilitiesForChars, k=1)
+            text += nextChar[0][-1]
+
         print(text)
-        print(accurances)
 
-        return text, accurances
+        return
 
 
-    def run(self, filePath: str):
+    def run(self, filePath: str, order: int, length: int):
 
         '''
         accurances, propability = self.loadTextFile(filePath)
@@ -109,5 +136,5 @@ class Solution:
         self.countAverageWordLengthFromString(generatedText)
         '''
 
-        self.generateMarkovText(6, filePath, 500)
+        self.generateMarkovText(order, filePath, length)
 
