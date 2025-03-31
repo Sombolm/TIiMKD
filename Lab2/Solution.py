@@ -32,8 +32,9 @@ class Solution:
 
         for line in file:
             words = line.strip().split(' ')
-            key = words[:n+1]
-            accurances[tuple(key)] += 1
+            for i in range(0, len(words), n):
+                key = words[i:i+n + 1]
+                accurances[tuple(key)] += 1
 
         probabilitySum = sum(accurances.values())
         conditionalProbability = {key: accurances[key] / probabilitySum for key in accurances}
@@ -118,11 +119,11 @@ class Solution:
 
         else:
             chosenWords = random.choices(list(probability.keys()), list(probability.values()), k=1)
-            text += chosenWords[random.randint(0, len(chosenWords))]
+            text += str(chosenWords[0][-1])
 
             textLengthInWords -= 1
 
-        for i in range(textLength):
+        for i in range(textLengthInWords):
             key = text[-order:]
             possibleChars = [char for char in probability if char.startswith(key)]
             probabilitiesForChars = [probability[char] for char in possibleChars]
