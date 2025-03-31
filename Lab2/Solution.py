@@ -111,4 +111,3 @@ class Solution:
         #zerowy, pierwszego rzedu, markova i odpowiedzi na pytania z tresci zadan
 
         self.generateMarkovText(order, filePath, textLength)
-

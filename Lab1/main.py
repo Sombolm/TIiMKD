@@ -1,4 +1,4 @@
 import Solution
 
 solution = Solution.Solution()
-solution.run("../Dane/norm_wiki_sample.txt")
+solution.run(6,"../Dane/norm_wiki_sample.txt", 500)
