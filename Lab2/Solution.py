@@ -108,19 +108,15 @@ class Solution:
         for i in range(textLengthInWords):
             key = text[-order:]
             possibleWords = [list(words) for words in probability if list(words[:order]) == key]
+            if not possibleWords:
+                return False
             probabilities = [probability[tuple(words)] for words in possibleWords]
 
             nextWords = random.choices(possibleWords, probabilities, k=1)
             nextWord = nextWords[0][::-1]
             text.append(nextWord[0])
-            print(text)
 
-
-
-
-        print(text)
-
-        return
+        return text
 
 
     def run(self, filePath: str, order: int, length: int, startProbability: bool):
@@ -135,6 +131,7 @@ class Solution:
         self.ShowTopAndBottomNChars(generatedTextAccurances)
         self.countAverageWordLengthFromString(generatedText)
         '''
-
-        self.generateMarkovText(order, filePath, length, startProbability)
+        while not (text := self.generateMarkovText(order, filePath, length, startProbability)):
+            pass
+        print(text)
 
