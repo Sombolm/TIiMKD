@@ -29,6 +29,7 @@ class Solution:
         file = open(filePath, 'r')
         accurances = defaultdict(int)
 
+
         for line in file:
             for i in range(n, len(line)):
                 key = line[i -n: i + 1]
@@ -60,7 +61,7 @@ class Solution:
                 sum_ += len(word)
                 count += 1
         file.close()
-        #print("Average word length: ", sum_ / count)
+        print("Average word length: ", sum_ / count)
 
     def countAverageWordLengthFromString(self, text: str):
         sum_ = 0
@@ -107,15 +108,19 @@ class Solution:
 
         return accurances
 
-    def generateMarkovText(self, order, filePath, textLength):
+    def generateMarkovText(self, order, filePath, textLength, startProbability):
         probability = self.getConditionalProbabilityAccordingToPrevNCharsV2(filePath, order)
         text = ''
 
-        #First chars
-        chosenChars = random.choices(list(probability.keys()), list(probability.values()), k=1)
-        text += chosenChars[0]
+        if startProbability:
+            text += "probability"
+            textLength -= len(text)
 
-        textLength -= order
+        else:
+            chosenChars = random.choices(list(probability.keys()), list(probability.values()), k=1)
+            text += chosenChars[0]
+
+            textLength -= order
 
         for i in range(textLength):
             key = text[-order:]
@@ -132,18 +137,17 @@ class Solution:
         return
 
 
-    def run(self, filePath: str, order: int, length: int):
+    def run(self, filePath: str, order: int, length: int, startProbability: bool):
 
-        '''
         accurances, propability = self.loadTextFile(filePath)
-        self.ShowTopAndBottomNChars(accurances)
+        self.ShowTopAndBottomNChars(accurances, 5)
         self.countAverageWordLengthFromFile(filePath)
-
+        print("---------------------------------------------------------")
 
         generatedText, generatedTextAccurances = self.generateText(propability, sum(accurances.values()))
-        self.ShowTopAndBottomNChars(generatedTextAccurances)
+        self.ShowTopAndBottomNChars(generatedTextAccurances, 5)
         self.countAverageWordLengthFromString(generatedText)
-        '''
+        print("---------------------------------------------------------")
 
-        self.generateMarkovText(order, filePath, length)
-
+        self.generateMarkovText(order, filePath, length, startProbability)
+        print("---------------------------------------------------------")

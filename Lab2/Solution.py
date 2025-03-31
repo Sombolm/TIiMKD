@@ -6,14 +6,38 @@ class Solution:
     def getConditionalProbabilityAccordingToPrevNChars(self, filePath, n) -> dict:
         file = open(filePath, 'r')
         accurances = defaultdict(int)
+        conditionAccurances = defaultdict(int)
 
         for line in file:
             for i in range(n, len(line)):
                 key = line[i -n: i + 1]
                 accurances[key] += 1
+                conditionAccurances[key[:-1]] += 1
 
         overallSum = sum(accurances.values())
-        conditionalProbability = {key: accurances[key] / overallSum for key in accurances}
+        sumPropability = {key: accurances[key] / overallSum for key in accurances}
+
+        conditionPropabilitySum = sum(conditionAccurances.values())
+        conditionProbability = {key: conditionAccurances[key] / conditionPropabilitySum for key in conditionAccurances}
+
+        conditionalProbability = {key: sumPropability[key] / conditionProbability[key[:-1]] for key in sumPropability}
+        file.close()
+
+        return conditionalProbability
+
+    def getConditionalProbabilityAccordingToPrevNCharsV2(self, filePath, n) -> dict:
+        file = open(filePath, 'r')
+        accurances = defaultdict(int)
+
+
+        for line in file:
+            words = line.strip().split(' ')
+            key = words[:n+1]
+            accurances[tuple(key)] += 1
+
+        probabilitySum = sum(accurances.values())
+        conditionalProbability = {key: accurances[key] / probabilitySum for key in accurances}
+
         file.close()
 
         return conditionalProbability
@@ -21,10 +45,10 @@ class Solution:
     def sortAccurances(self, accurances: dict):
         return sorted(accurances.items(), key=lambda x: x[1], reverse=True)
 
-    def ShowTopAndBottomNChars(self, accurances: dict):
+    def ShowTopAndBottomNChars(self, accurances: dict, n: int):
         sortedAccurances = self.sortAccurances(accurances)
-        #print("Top 5 characters: ", sortedAccurances[:5])
-        #print("Bottom 5 characters: ", sortedAccurances[-5:])
+        print("Top 5 characters: ", sortedAccurances[:n])
+        print("Bottom 5 characters: ", sortedAccurances[-n:])
 
     def countAverageWordLengthFromFile(self, path: str):
         file = open(path, 'r')
@@ -47,8 +71,7 @@ class Solution:
             sum_ += len(word)
             count += 1
 
-        #print("Average word length: ", sum_ / count)
-
+        print("Average word length: ", sum_ / count)
 
     def loadTextFile(self, path: str):
         file = open(path, 'r')
@@ -67,9 +90,9 @@ class Solution:
 
         return accurances, propability
 
-    def generateText(self, propability: defaultdict, length: int):
+    def generateText(self, probability: defaultdict, length: int):
         text = ''
-        chars = random.choices(list(propability.keys()), list(propability.values()), k=length)
+        chars = random.choices(list(probability.keys()), list(probability.values()), k=length)
         accurances = defaultdict(int)
 
         for char in chars:
@@ -78,25 +101,43 @@ class Solution:
 
         return text, accurances
 
-    def generateMarkovText(self, order, filePath, textLength):
-        propability = self.getConditionalProbabilityAccordingToPrevNChars(filePath, order)
+    def countAccurancesFromText(self, text: str):
+        accurances = defaultdict(int)
+        for char in text:
+            accurances[char] += 1
+
+        return accurances
+
+    def generateMarkovText(self, order, filePath, textLengthInWords, startProbability):
+        probability = self.getConditionalProbabilityAccordingToPrevNCharsV2(filePath, order)
         text = ''
 
-        chars = [x[-1] for x in propability.keys()]
-        chosenChars = random.choices(chars, list(propability.values()), k=textLength)
+        if startProbability:
+            text += "probability"
+            textLengthInWords -= 1
 
-        accurances = defaultdict(int)
+        else:
+            chosenWords = random.choices(list(probability.keys()), list(probability.values()), k=1)
+            text += chosenWords[random.randint(0, len(chosenWords))]
 
-        for char in chosenChars:
-            text += str(char)
-            accurances[char] += 1
+            textLengthInWords -= 1
+
+        for i in range(textLength):
+            key = text[-order:]
+            possibleChars = [char for char in probability if char.startswith(key)]
+            probabilitiesForChars = [probability[char] for char in possibleChars]
+
+            nextChar = random.choices(possibleChars, probabilitiesForChars, k=1)
+            text += nextChar[0][-1]
+
         print(text)
-        print(accurances)
+        print(self.countAverageWordLengthFromString(text))
+        print(self.ShowTopAndBottomNChars(self.countAccurancesFromText(text),5))
 
-        return text, accurances
+        return
 
 
-    def run(self, filePath: str, order: int, textLength: int):
+    def run(self, filePath: str, order: int, length: int, startProbability: bool):
 
         '''
         accurances, propability = self.loadTextFile(filePath)
@@ -108,6 +149,6 @@ class Solution:
         self.ShowTopAndBottomNChars(generatedTextAccurances)
         self.countAverageWordLengthFromString(generatedText)
         '''
-        #zerowy, pierwszego rzedu, markova i odpowiedzi na pytania z tresci zadan
 
-        self.generateMarkovText(order, filePath, textLength)
+        self.generateMarkovText(order, filePath, length, startProbability)
+
