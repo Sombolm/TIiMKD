@@ -1,6 +1,8 @@
 from collections import defaultdict
 import random
 
+
+
 class Solution:
 
     def getConditionalProbabilityAccordingToPrevNChars(self, filePath, n) -> dict:
@@ -64,33 +66,6 @@ class Solution:
         file.close()
         #print("Average word length: ", sum_ / count)
 
-    def countAverageWordLengthFromString(self, text: str):
-        sum_ = 0
-        count = 0
-        words = text.split()
-        for word in words:
-            sum_ += len(word)
-            count += 1
-
-        print("Average word length: ", sum_ / count)
-
-    def loadTextFile(self, path: str):
-        file = open(path, 'r')
-        accurances = defaultdict(int)
-        propability = defaultdict(float)
-
-        for line in file:
-            for char in line:
-                accurances[char] += 1
-
-        overAllSum = sum(accurances.values())
-        for key in accurances:
-            propability[key] = accurances[key] / overAllSum
-
-        file.close()
-
-        return accurances, propability
-
     def generateText(self, probability: defaultdict, length: int):
         text = ''
         chars = random.choices(list(probability.keys()), list(probability.values()), k=length)
@@ -111,29 +86,39 @@ class Solution:
 
     def generateMarkovText(self, order, filePath, textLengthInWords, startProbability):
         probability = self.getConditionalProbabilityAccordingToPrevNCharsV2(filePath, order)
-        text = ''
+        text = []
 
         if startProbability:
-            text += "probability"
+            text.append('probability')
             textLengthInWords -= 1
+
+            for words in probability:
+                if words[0] == 'probability':
+                    text.extend(words[1:order:])
+                    textLengthInWords -= order
+                    break
 
         else:
             chosenWords = random.choices(list(probability.keys()), list(probability.values()), k=1)
-            text += str(chosenWords[0][-1])
+            reversedChosenWords = list(chosenWords[0])[::-1]
+            text.extend(reversedChosenWords[:order])
 
-            textLengthInWords -= 1
+            textLengthInWords -= order
 
         for i in range(textLengthInWords):
             key = text[-order:]
-            possibleChars = [char for char in probability if char.startswith(key)]
-            probabilitiesForChars = [probability[char] for char in possibleChars]
+            possibleWords = [list(words) for words in probability if list(words[:order]) == key]
+            probabilities = [probability[tuple(words)] for words in possibleWords]
 
-            nextChar = random.choices(possibleChars, probabilitiesForChars, k=1)
-            text += nextChar[0][-1]
+            nextWords = random.choices(possibleWords, probabilities, k=1)
+            nextWord = nextWords[0][::-1]
+            text.append(nextWord[0])
+            print(text)
+
+
+
 
         print(text)
-        print(self.countAverageWordLengthFromString(text))
-        print(self.ShowTopAndBottomNChars(self.countAccurancesFromText(text),5))
 
         return
 

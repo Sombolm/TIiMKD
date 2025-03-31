@@ -139,6 +139,7 @@ class Solution:
 
     def run(self, filePath: str, order: int, length: int, startProbability: bool):
 
+        '''
         accurances, propability = self.loadTextFile(filePath)
         self.ShowTopAndBottomNChars(accurances, 5)
         self.countAverageWordLengthFromFile(filePath)
@@ -148,6 +149,7 @@ class Solution:
         self.ShowTopAndBottomNChars(generatedTextAccurances, 5)
         self.countAverageWordLengthFromString(generatedText)
         print("---------------------------------------------------------")
+        '''
 
         self.generateMarkovText(order, filePath, length, startProbability)
         print("---------------------------------------------------------")
