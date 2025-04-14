@@ -3,43 +3,24 @@ import random
 
 class Solution:
 
-    def getConditionalProbabilityAccordingToPrevNChars(self, filePath, n) -> dict:
+    def getConditionalProbabilityAccordingToPrevNCharsV3(self,filePath, n):
         file = open(filePath, 'r')
-        accurances = defaultdict(int)
-        conditionAccurances = defaultdict(int)
+        nPlusCount = defaultdict(int)
+        nCount = defaultdict(int)
 
         for line in file:
             for i in range(n, len(line)):
-                key = line[i -n: i + 1]
-                accurances[key] += 1
-                conditionAccurances[key[:-1]] += 1
+                nPlusKey = line[i - n: i + 1]
+                nKey = line[i - n: i]
+                nPlusCount[nPlusKey] += 1
+                nCount[nKey] += 1
 
-        overallSum = sum(accurances.values())
-        sumPropability = {key: accurances[key] / overallSum for key in accurances}
-
-        conditionPropabilitySum = sum(conditionAccurances.values())
-        conditionProbability = {key: conditionAccurances[key] / conditionPropabilitySum for key in conditionAccurances}
-
-        conditionalProbability = {key: sumPropability[key] / conditionProbability[key[:-1]] for key in sumPropability}
-        file.close()
-
-        return conditionalProbability
-
-    def getConditionalProbabilityAccordingToPrevNCharsV2(self, filePath, n) -> dict:
-        file = open(filePath, 'r')
-        accurances = defaultdict(int)
-
-
-        for line in file:
-            for i in range(n, len(line)):
-                key = line[i -n: i + 1]
-                accurances[key] += 1
-
-        probabilitySum = sum(accurances.values())
-        conditionalProbability = {key: accurances[key] / probabilitySum for key in accurances}
+        conditionalProbability = {
+            key: nPlusCount[key] / nCount[key[:-1]]
+            for key in nPlusCount
+        }
 
         file.close()
-
         return conditionalProbability
 
     def sortAccurances(self, accurances: dict):
@@ -88,7 +69,7 @@ class Solution:
 
         file.close()
 
-        return accurances, propability
+        return accurances, propability, overAllSum
 
     def generateText(self, probability: defaultdict, length: int):
         text = ''
@@ -101,6 +82,17 @@ class Solution:
 
         return text, accurances
 
+    def generateZeroMarkovText(self, n):
+        text = ''
+        chars = 'abcdefghijklmnopqrstuvwxyz '
+        accurances = defaultdict(int)
+        for i in range(n):
+            char = random.choice(chars)
+            text += char
+            accurances[char] += 1
+
+        return text, accurances
+
     def countAccurancesFromText(self, text: str):
         accurances = defaultdict(int)
         for char in text:
@@ -109,7 +101,7 @@ class Solution:
         return accurances
 
     def generateMarkovText(self, order, filePath, textLength, startProbability):
-        probability = self.getConditionalProbabilityAccordingToPrevNCharsV2(filePath, order)
+        probability = self.getConditionalProbabilityAccordingToPrevNCharsV3(filePath, order)
         text = ''
 
         if startProbability:
@@ -134,22 +126,21 @@ class Solution:
         print(self.countAverageWordLengthFromString(text))
         print(self.ShowTopAndBottomNChars(self.countAccurancesFromText(text),5))
 
-        return
 
 
     def run(self, filePath: str, order: int, length: int, startProbability: bool):
 
-        '''
-        accurances, propability = self.loadTextFile(filePath)
+
+        accurances, propability, overAllSum = self.loadTextFile(filePath)
         self.ShowTopAndBottomNChars(accurances, 5)
         self.countAverageWordLengthFromFile(filePath)
         print("---------------------------------------------------------")
 
-        generatedText, generatedTextAccurances = self.generateText(propability, sum(accurances.values()))
+        generatedText, generatedTextAccurances = self.generateZeroMarkovText(overAllSum)
         self.ShowTopAndBottomNChars(generatedTextAccurances, 5)
         self.countAverageWordLengthFromString(generatedText)
         print("---------------------------------------------------------")
-        '''
+
 
         self.generateMarkovText(order, filePath, length, startProbability)
         print("---------------------------------------------------------")

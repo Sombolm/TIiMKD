@@ -7,44 +7,27 @@ class Solution:
 
     runOnce = False
 
-    def getConditionalProbabilityAccordingToPrevNChars(self, filePath, n) -> dict:
+    def getConditionalProbabilityAccordingToPrevNWords(self,filePath, n):
         file = open(filePath, 'r')
-        accurances = defaultdict(int)
-        conditionAccurances = defaultdict(int)
+        nPlusCount = defaultdict(int)
+        nCount = defaultdict(int)
 
         for line in file:
-            for i in range(n, len(line)):
-                key = line[i -n: i + 1]
-                accurances[key] += 1
-                conditionAccurances[key[:-1]] += 1
-
-        overallSum = sum(accurances.values())
-        sumPropability = {key: accurances[key] / overallSum for key in accurances}
-
-        conditionPropabilitySum = sum(conditionAccurances.values())
-        conditionProbability = {key: conditionAccurances[key] / conditionPropabilitySum for key in conditionAccurances}
-
-        conditionalProbability = {key: sumPropability[key] / conditionProbability[key[:-1]] for key in sumPropability}
-        file.close()
-
-        return conditionalProbability
-
-    def getConditionalProbabilityAccordingToPrevNCharsV2(self, filePath, n) -> dict:
-        file = open(filePath, 'r')
-        accurances = defaultdict(int)
+            words = line.strip().split()
+            for i in range(n, len(words)):
+                context = tuple(words[i - n: i])
+                nextWord = words[i]
+                nPlusKey = context + (nextWord,)
+                nPlusCount[nPlusKey] += 1
+                nCount[context] += 1
 
 
-        for line in file:
-            words = line.strip().split(' ')
-            for i in range(0, len(words), n):
-                key = words[i:i+n + 1]
-                accurances[tuple(key)] += 1
-
-        probabilitySum = sum(accurances.values())
-        conditionalProbability = {key: accurances[key] / probabilitySum for key in accurances}
+        conditionalProbability = {
+            key: nPlusCount[key] / nCount[key[:-1]]
+            for key in nPlusCount
+        }
 
         file.close()
-
         return conditionalProbability
 
     def sortAccurances(self, accurances: dict):
@@ -87,7 +70,7 @@ class Solution:
         return accurances
 
     def generateMarkovText(self, order, filePath, textLengthInWords, startProbability):
-        probability = self.getConditionalProbabilityAccordingToPrevNCharsV2(filePath, order)
+        probability = self.getConditionalProbabilityAccordingToPrevNWords(filePath, order)
         text = []
 
         if startProbability:
@@ -102,7 +85,7 @@ class Solution:
 
         else:
             chosenWords = random.choices(list(probability.keys()), list(probability.values()), k=1)
-            reversedChosenWords = list(chosenWords[0])[::-1]
+            reversedChosenWords = list(chosenWords[0])
             text.extend(reversedChosenWords[:order])
 
             textLengthInWords -= order
@@ -110,8 +93,6 @@ class Solution:
         for i in range(textLengthInWords):
             key = text[-order:]
             possibleWords = [list(words) for words in probability if list(words[:order]) == key]
-            if not possibleWords:
-                return False
             probabilities = [probability[tuple(words)] for words in possibleWords]
 
             nextWords = random.choices(possibleWords, probabilities, k=1)
@@ -133,11 +114,8 @@ class Solution:
         self.ShowTopAndBottomNChars(generatedTextAccurances)
         self.countAverageWordLengthFromString(generatedText)
         '''
-        if not self.runOnce:
-            self.countAverageWordLengthFromFile(filePath)
-            self.runOnce = True
 
-        while not (text := self.generateMarkovText(order, filePath, length, startProbability)):
-            pass
+        text = self.generateMarkovText(order, filePath, length, startProbability)
+
         print(text)
 

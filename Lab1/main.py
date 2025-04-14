@@ -1,4 +1,5 @@
 import Solution
 
 solution = Solution.Solution()
-solution.run("../Dane/norm_wiki_sample.txt",5, 500, True)
+order = 5
+solution.run("../Dane/norm_wiki_sample.txt",order, 500, True)
