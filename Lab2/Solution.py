@@ -5,6 +5,8 @@ import random
 
 class Solution:
 
+    runOnce = False
+
     def getConditionalProbabilityAccordingToPrevNChars(self, filePath, n) -> dict:
         file = open(filePath, 'r')
         accurances = defaultdict(int)
@@ -64,7 +66,7 @@ class Solution:
                 sum_ += len(word)
                 count += 1
         file.close()
-        #print("Average word length: ", sum_ / count)
+        print("Average word length: ", sum_ / count)
 
     def generateText(self, probability: defaultdict, length: int):
         text = ''
@@ -131,6 +133,10 @@ class Solution:
         self.ShowTopAndBottomNChars(generatedTextAccurances)
         self.countAverageWordLengthFromString(generatedText)
         '''
+        if not self.runOnce:
+            self.countAverageWordLengthFromFile(filePath)
+            self.runOnce = True
+
         while not (text := self.generateMarkovText(order, filePath, length, startProbability)):
             pass
         print(text)
