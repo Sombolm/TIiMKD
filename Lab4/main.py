@@ -35,10 +35,11 @@ def testFromFile():
     decodedText = bincoder.decode(encodedText, code)
     print("First 10 Decoded Text: ", decodedText[:10])
 
-    bincoder.save("encoded.txt", code, encodedText)
+    bincoder.save("encoded", code, encodedText)
 
-    code , encodedText = bincoder.load("encoded.txt")
+    code , encodedText = bincoder.load("encoded")
     print("First 10 decoded text from file: ", bincoder.decode(encodedText, code)[:10])
+    print("Code from file: ", code)
 
 def main():
     # testFunctions()
