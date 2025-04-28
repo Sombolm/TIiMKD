@@ -1,4 +1,5 @@
 import math
+import os.path
 from collections import defaultdict
 from bitarray import bitarray
 
@@ -76,75 +77,46 @@ class BinaryCoder:
 
         return decodedText
 
-    def save(self, filename, code, encodedText) -> bool:
-        try:
-            allBits = bitarray()
+    def save(self, filename, code, encodedText: bitarray) -> bool:
+        os.makedirs(filename, exist_ok=True)
 
-            numSymbols = len(code)
-            allBits.frombytes(numSymbols.to_bytes(1, 'big'))
+        if len(encodedText) % 8 != 0:
+            padding = 8 - len(encodedText) % 8
+            encodedText += bitarray('0' * padding)
 
-            codeLength = len(next(iter(code.values()))) if code else 0
-            allBits.frombytes(codeLength.to_bytes(1, 'big'))
+        with open(os.path.join(filename, 'encoded.bin'), 'wb') as encodedFile:
+            encodedText.tofile(encodedFile)
+        encodedFile.close()
 
+        with open(os.path.join(filename, 'code.txt'), 'w') as codeFile:
             for symbol, bits in code.items():
-                symbolBytes = symbol.encode('utf-8')
-                allBits.frombytes(len(symbolBytes).to_bytes(1, 'big'))
-                allBits.frombytes(symbolBytes)
-                allBits += bits
-
-            allBits.frombytes(len(encodedText).to_bytes(4, 'big'))
-            allBits += encodedText
-
-            unusedBits = (8 - (len(allBits) % 8)) % 8
-            if unusedBits:
-                allBits.extend([0] * unusedBits)
-            allBits.frombytes(unusedBits.to_bytes(1, 'big'))
-
-            with open(filename, 'wb') as f:
-                f.write(allBits.tobytes())
-
-            return True
-        except Exception as e:
-            print("Error during save:", e)
-            return False
+                codeFile.write(f"{symbol}:{bits.to01()}\n")
+        codeFile.close()
+        return True
 
     def load(self, filename) -> tuple:
-        try:
-            with open(filename, 'rb') as f:
-                fileBits = bitarray()
-                fileBits.fromfile(f)
+        encodedText = bitarray()
+        codes = {}
 
-                unusedBits = int.from_bytes(fileBits[-8:].tobytes(), 'big')
-                del fileBits[-8:]
-                if unusedBits:
-                    del fileBits[-unusedBits:]
+        with open(os.path.join(filename, 'code.txt'), 'r') as file:
+            for line in file:
+                symbol, code = line.split(':')
+                codes[symbol] = bitarray(code.strip())
+        file.close()
 
-                pos = 0
+        with open(os.path.join(filename, 'encoded.bin'), 'rb') as file:
+            encodedText.fromfile(file)
+        file.close()
 
-                numSymbols = int.from_bytes(fileBits[pos:pos + 8].tobytes(), 'big')
-                pos += 8
+        symbolLen = len(list(codes.values())[0])
 
-                codeLength = int.from_bytes(fileBits[pos:pos + 8].tobytes(), 'big')
-                pos += 8
+        if (len(encodedText) / symbolLen) % 8 != 0:
+            padding = 8 - len(encodedText) % 8
+            encodedText = encodedText[:-padding]
 
-                code = {}
-                for _ in range(numSymbols):
-                    symbolLen = int.from_bytes(fileBits[pos:pos + 8].tobytes(), 'big')
-                    pos += 8
-                    symbolBytes = fileBits[pos:pos + 8 * symbolLen].tobytes()
-                    symbol = symbolBytes.decode('utf-8')
-                    pos += 8 * symbolLen
-                    bits = fileBits[pos:pos + codeLength]
-                    code[symbol] = bits
-                    pos += codeLength
+        return codes, encodedText
 
-                textLength = int.from_bytes(fileBits[pos:pos + 32].tobytes(), 'big')
-                pos += 32
-                encodedText = fileBits[pos:pos + textLength]
 
-                return code, encodedText
-        except Exception as e:
-            print("Error during load:", e)
-            return {}, bitarray()
+
 
 

@@ -32,8 +32,8 @@ def testFromFile():
     symbolLen = len(list(code.values())[0])
     print("First 10 Encoded Text: ", encodedText[:10 *symbolLen])
 
-    decodedText = bincoder.decode(encodedText, code)
-    print("First 10 Decoded Text: ", decodedText[:10])
+    #decodedText = bincoder.decode(encodedText, code)
+    #print("First 10 Decoded Text: ", decodedText[:10])
 
     bincoder.save("encoded", code, encodedText)
 
