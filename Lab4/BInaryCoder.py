@@ -6,7 +6,8 @@ from bitarray import bitarray
 class BinaryCoder:
 
     def __init__(self):
-        pass
+        self.frequencies = defaultdict(int)
+        self.codeLengths = dict
 
     def getFrequenciesFromText(self, text) -> dict:
         frequencies = defaultdict(int)
@@ -36,6 +37,18 @@ class BinaryCoder:
 
         return frequencies, text
 
+    def getAvgCodeLength(self) -> float:
+        return (sum([self.codeLengths[symbol] * freq for symbol, freq in self.frequencies.items()]) / sum(self.frequencies.values()))
+
+    def getCodeEfficiency(self) -> float:
+
+        avgCodeLength = self.getAvgCodeLength()
+        sumFrequency = sum(self.frequencies.values())
+        entropy = -sum((self.frequencies[symbol] / sumFrequency) * math.log2(self.frequencies[symbol] / sumFrequency) for symbol in
+                       self.frequencies)
+
+        return entropy / avgCodeLength if avgCodeLength > 0 else 0
+
     def create(self, frequencies) -> dict:
         symbols = sorted(list(frequencies.keys()))
         numberOfSymbols = len(symbols)
@@ -46,6 +59,9 @@ class BinaryCoder:
         for idx, symbol in enumerate(symbols):
             code = bitarray(format(idx, f'0{codeLength}b'))
             codes[symbol] = code
+
+        self.frequencies = frequencies
+        self.codeLengths = {symbol: codeLength for symbol in symbols}
 
         return codes
 

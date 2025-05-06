@@ -41,6 +41,10 @@ def testFromFile():
     print("First 10 decoded text from file: ", bincoder.decode(encodedText, code)[:10])
     print("Code from file: ", code)
 
+    print("Average code length: ", bincoder.getAvgCodeLength())
+    print("Code efficiency: ", bincoder.getCodeEfficiency())
+
+
 def main():
     # testFunctions()
     testFromFile()
