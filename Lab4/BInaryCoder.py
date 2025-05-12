@@ -132,6 +132,22 @@ class BinaryCoder:
 
         return codes, encodedText
 
+    def compareFileSizes(self, original, encoded, code):
+        original_size = os.path.getsize(original)
+        encoded_size = os.path.getsize(encoded)
+        code_size = os.path.getsize(code)
+
+        print(f"Original file size: {original_size} bytes")
+        print("-" * 50)
+        print(f"Encoded file size: {encoded_size} bytes")
+        print(f"Code file size: {code_size} bytes")
+        print("-" * 50)
+        print(f"Total size of encoded file and code file: {encoded_size + code_size} bytes")
+        print("-" * 50)
+        print("Original to Encoded ratio: ", original_size / encoded_size)
+        print("Original to Encoded + Code ratio: ", original_size / (encoded_size + code_size))
+
+        return original_size, encoded_size, code_size
 
 
 

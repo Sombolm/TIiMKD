@@ -48,6 +48,8 @@ def testFromFile():
     print("Average code length: ", coder.getAvgCodeLength())
     print("Code efficiency: ", coder.getCodeEfficiency())
 
+    coder.compareFileSizes(filename, "encoded/encoded.bin", "encoded/code.txt")
+
 def main():
     #testFunctions()
     testFromFile()

@@ -44,6 +44,8 @@ def testFromFile():
     print("Average code length: ", bincoder.getAvgCodeLength())
     print("Code efficiency: ", bincoder.getCodeEfficiency())
 
+    bincoder.compareFileSizes(filename, "encoded/encoded.bin", "encoded/code.txt")
+
 
 def main():
     # testFunctions()
