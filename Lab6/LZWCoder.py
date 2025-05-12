@@ -25,166 +25,115 @@ class LZWCoder:
         return entropy / avg_code_length
 
     def encode(self, text):
-        # Initialize dictionary with ASCII characters
         dictionary = {chr(i): i for i in range(256)}
         next_code = 256
         current = ''
-        encoded = bitarray()  # Initialize bitarray here
+        encoded = bitarray()
 
-        # --- Variable Bit Width Logic ---
-        # Start with 9 bits, enough for codes 0-511
-        # (next_code=256 is the first code added, requiring 9 bits)
+
         bits_needed = 9
-        # -------------------------------
 
         for char in text:
-            # self.frequencies[char] += 1 # Keep if needed for other purposes
             combined = current + char
             if combined in dictionary:
                 current = combined
             else:
-                # Output the code for the 'current' sequence
                 code_to_output = dictionary[current]
 
-                # --- Write code with CURRENT bits_needed ---
                 encoded.extend(format(code_to_output, f'0{bits_needed}b'))
-                # self.codeLengths[current] = bits_needed # Store bits used for this code if needed
-                # ------------------------------------------
-
-                # Add new sequence to dictionary if space allows
                 if next_code < self.max_dict_size:
                     dictionary[combined] = next_code
 
-                    # --- Check if NEXT code will require more bits ---
-                    # If the code we JUST added (next_code) is a power of 2,
-                    # the *next* code after this (next_code + 1) will need more bits.
-                    # Use >= because next_code represents the *size* before adding +1
-                    # Alternative check: if next_code + 1 > 2**bits_needed:
                     if next_code >= (1 << bits_needed):
-                        # Important: Only increase bits if we haven't hit the max dict size limit
-                        # The number of bits shouldn't exceed what's needed for max_dict_size - 1
                         max_bits = (self.max_dict_size - 1).bit_length()
                         if bits_needed < max_bits:
                             bits_needed += 1
-                    # ---------------------------------------------------
 
-                    next_code += 1  # Increment after adding and checking bits
+                    next_code += 1
 
                 current = char
 
-        # Handle the last sequence
         if current:
             last_code = dictionary[current]
-            # Write the last code using the final bits_needed
             encoded.extend(format(last_code, f'0{bits_needed}b'))
-            # self.codeLengths[current] = bits_needed # Store bits used if needed
 
-        # self.codeLengths contains the bit width used when each specific code was emitted
         return encoded
 
-    # --- Your DECODE function (looks mostly correct for variable width) ---
     def decode(self, encodedText):
         dictionary = {i: chr(i) for i in range(256)}
         next_code = 256
         decoded = ''
 
-        # --- Variable Bit Width Logic ---
-        # Mirroring encoder: Start with 9 bits
         bits_needed = 9
-        # -------------------------------
 
         encoded_string = encodedText.to01()
         i = 0
-        prev_entry = ""
 
-        # Handle empty input immediately
         if not encoded_string:
             return decoded
 
-        # Get the first code (always ASCII, fits in initial bits_needed)
         if i + bits_needed <= len(encoded_string):
             try:
-                # Read the first code using the initial bit width
                 code_bits = encoded_string[i:i + bits_needed]
                 prev_code = int(code_bits, 2)
             except ValueError:
                 raise ValueError(f"Invalid bits for initial code at index {i}: '{code_bits}' (needed {bits_needed})")
 
             i += bits_needed
-            if prev_code not in dictionary:  # Should be 0-255
+            if prev_code not in dictionary:
                 raise ValueError(f"Invalid initial LZW code: {prev_code} (must be 0-255)")
 
-            # First char is directly the dictionary entry
             prev_entry = dictionary[prev_code]
             decoded += prev_entry
 
         else:
-            # Handle case where input is too short even for the first code
             print(f"Warning: Input too short for first code. Need {bits_needed}, have {len(encoded_string)} bits.")
-            return decoded  # Or raise error
+            return decoded
 
-        # Main decode loop
         while i < len(encoded_string):
 
-            # --- Check if NEXT code addition requires increasing bit width ---
-            # This check should happen *before* reading the next code,
-            # based on the dictionary size *before* adding the next entry.
-            # Use >= because next_code represents the *size*
-            # Important: Only increase bits if we haven't hit the max dict size limit
             max_bits = (self.max_dict_size - 1).bit_length()
             if next_code >= (1 << bits_needed) and bits_needed < max_bits:
                 bits_needed += 1
             # ----------------------------------------------------------------
 
-            # Check if enough bits remain for the *current* width
             if i + bits_needed > len(encoded_string):
                 print(
                     f"Warning: Incomplete code at the end. Index {i}, need {bits_needed}, remaining {len(encoded_string) - i} bits: '{encoded_string[i:]}'")
-                break  # Stop decoding gracefully
+                break
 
             try:
                 code_bits = encoded_string[i:i + bits_needed]
                 code = int(code_bits, 2)
             except ValueError:
-                # Provide more context in error
                 raise ValueError(f"Invalid bits for code at index {i}: '{code_bits}' (expected {bits_needed} bits)")
 
-            # --- DEBUG OUTPUT ---
-            # print(f"DEBUG: Read @{i} (used {bits_needed} bits): code={code}. next_code={next_code}. dict_size={len(dictionary)}. prev_entry='{prev_entry[:20]}...'")
-            # --- END DEBUG ---
 
-            i += bits_needed  # Advance index *after* reading
+            i += bits_needed
 
-            # Decode the code
             if code in dictionary:
                 entry = dictionary[code]
-            # Handle KwKwK case: code == next_code means the encoder outputted the code it was just about to add
             elif code == next_code and next_code < self.max_dict_size:
                 if prev_entry == "":
                     raise ValueError(
                         f"Invalid LZW sequence: KwKwK case (code={code}) encountered with no previous entry.")
                 entry = prev_entry + prev_entry[0]
             else:
-                # Error: Code is not in dictionary and not the special KwKwK case
                 raise ValueError(
                     f"Invalid LZW code encountered: {code} (dict size {len(dictionary)}, next_code {next_code}, reading {bits_needed} bits)")
 
             decoded += entry
 
-            # Add new entry to dictionary if space allows
             if next_code < self.max_dict_size:
                 if prev_entry == "":
-                    # This shouldn't happen after the first code, but safety check
                     raise ValueError("Internal error: prev_entry is empty during dictionary update.")
                 new_entry_str = prev_entry + entry[0]
                 dictionary[next_code] = new_entry_str
-                next_code += 1  # Increment *after* potentially adding
+                next_code += 1
 
-            prev_entry = entry  # Update prev_entry for the next iteration
+            prev_entry = entry
 
         return decoded
-
-
 
     def save(self, filename, encodedText: bitarray) -> bool:
         os.makedirs(os.path.dirname(filename), exist_ok=True)
@@ -228,8 +177,8 @@ class LZWCoder:
 
 
 def testFromFile():
-    filename = "Dane/test.txt"
-    coder = LZWCoder(max_dict_size=2**18)
+    filename = "Dane/norm_wiki_sample.txt"
+    coder = LZWCoder(max_dict_size=2**12)
     frequencies, text = coder.getFrequenciesAndTextFromFile(filename)
     print("Frequencies: ", dict(list(frequencies.items())[:10]))
 
