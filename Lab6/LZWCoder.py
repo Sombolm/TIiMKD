@@ -73,15 +73,16 @@ class LZWCoder:
             return decoded
 
         if i + bits_needed <= len(encoded_string):
+
             code_bits = encoded_string[i:i + bits_needed]
             prev_code = int(code_bits, 2)
+
+
             i += bits_needed
 
             prev_entry = dictionary[prev_code]
             decoded += prev_entry
 
-        else:
-            print(f"Warning: Input too short for first code. Need {bits_needed}, have {len(encoded_string)} bits.")
 
         while i < len(encoded_string):
 
@@ -95,8 +96,11 @@ class LZWCoder:
                     f"Warning: Incomplete code at the end. Index {i}, need {bits_needed}, remaining {len(encoded_string) - i} bits: '{encoded_string[i:]}'")
                 break
 
-            code_bits = encoded_string[i:i + bits_needed]
-            code = int(code_bits, 2)
+            try:
+                code_bits = encoded_string[i:i + bits_needed]
+                code = int(code_bits, 2)
+            except ValueError:
+                raise ValueError(f"Invalid bits for code at index {i}: '{code_bits}' (expected {bits_needed} bits)")
 
 
             i += bits_needed
@@ -115,6 +119,8 @@ class LZWCoder:
             decoded += entry
 
             if next_code < self.max_dict_size:
+                if prev_entry == "":
+                    raise ValueError("Internal error: prev_entry is empty during dictionary update.")
                 new_entry_str = prev_entry + entry[0]
                 dictionary[next_code] = new_entry_str
                 next_code += 1

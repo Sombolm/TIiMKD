@@ -27,6 +27,7 @@ def testFromFile():
 
     code = bincoder.create(frequencies)
     print("Code: ", code)
+    print("-" * 50)
 
     encodedText = bincoder.encode(text, code)
     symbolLen = len(list(code.values())[0])
@@ -48,7 +49,7 @@ def testFromFile():
             print(f"Mismatch at index {idx}: {decodedText[idx]} != {text[idx]}")
             print("Mismatched text: ", text[idx], " vs ", decodedText[idx])
             break
-
+    print("-" * 50)
     print("Average code length: ", bincoder.getAvgCodeLength())
     print("Code efficiency: ", bincoder.getCodeEfficiency())
 
@@ -56,7 +57,7 @@ def testFromFile():
 
 
 def main():
-    # testFunctions()
+    #testFunctions()
     testFromFile()
 
 if __name__ == "__main__":

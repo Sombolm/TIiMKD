@@ -25,12 +25,13 @@ def testFunctions():
     print("Code efficiency: ", coder.getCodeEfficiency())
 
 def testFromFile():
-    filename = "Dane/norm_wiki_sample.txt"
+    filename = "Dane/test.txt"
     frequencies, text = coder.getFrequenciesAndTextFromFile(filename)
     print("Frequencies: ", frequencies)
 
     code = coder.create(frequencies)
     print("Code: ", code)
+    print("-" * 50)
 
     encodedText = coder.encode(text, code)
     symbolLen = len(list(code.values())[0])
@@ -52,7 +53,7 @@ def testFromFile():
             print(f"Mismatch at index {idx}: {decodedText[idx]} != {text[idx]}")
             print("Mismatched text: ", text[idx], " vs ", decodedText[idx])
             break
-
+    print("-" * 50)
     print("Average code length: ", coder.getAvgCodeLength())
     print("Code efficiency: ", coder.getCodeEfficiency())
 

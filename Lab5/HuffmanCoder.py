@@ -119,9 +119,10 @@ class HuffmanCoder:
     def save(self, filename, code, encodedText: bitarray) -> bool:
         os.makedirs(filename, exist_ok=True)
 
+        padding = 0
+
         if len(encodedText) % 8 != 0:
             padding = 8 - len(encodedText) % 8
-            encodedText += bitarray('0' * padding)
 
         with open(os.path.join(filename, 'encoded.bin'), 'wb') as encodedFile:
             encodedText.tofile(encodedFile)
@@ -130,16 +131,21 @@ class HuffmanCoder:
         with open(os.path.join(filename, 'code.txt'), 'w') as codeFile:
             for symbol, bits in code.items():
                 codeFile.write(f"{symbol}:{bits.to01()}\n")
+            if padding > 0:
+                codeFile.write(f"padding:{padding}\n")
         codeFile.close()
         return True
 
     def load(self, filename) -> tuple:
         encodedText = bitarray()
         codes = {}
-
+        padding = 0
         with open(os.path.join(filename, 'code.txt'), 'r') as file:
             for line in file:
                 symbol, code = line.split(':')
+                if symbol == 'padding':
+                    padding = int(code.strip())
+                    continue
                 codes[symbol] = bitarray(code.strip())
         file.close()
 
@@ -147,10 +153,7 @@ class HuffmanCoder:
             encodedText.fromfile(file)
         file.close()
 
-        symbolLen = len(list(codes.values())[0])
-
-        if (len(encodedText) / symbolLen) % 8 != 0:
-            padding = 8 - len(encodedText) % 8
+        if padding > 0:
             encodedText = encodedText[:-padding]
 
         return codes, encodedText
