@@ -88,7 +88,7 @@ class BinaryCoder:
             if tupleBits in reversedCode:
                 decodedText += reversedCode[tupleBits]
             else:
-                #print("Invalid byte: ", bits)
+                print("Invalid byte: ", bits)
                 decodedText += '?'
 
         return decodedText

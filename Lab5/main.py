@@ -42,8 +42,16 @@ def testFromFile():
     coder.save("encoded", code, encodedText)
 
     code , encodedText = coder.load("encoded")
-    print("First 10 decoded text from file: ", coder.decode(encodedText, code)[:10])
+    decodedText = coder.decode(encodedText, code)
+    print("First 10 decoded text from file: ", decodedText[:10])
     print("Code from file: ", code)
+    print("Length of text: ", len(text))
+    print("Length of decoded text: ", len(decodedText))
+    for idx in range(len(text)):
+        if decodedText[idx] != text[idx]:
+            print(f"Mismatch at index {idx}: {decodedText[idx]} != {text[idx]}")
+            print("Mismatched text: ", text[idx], " vs ", decodedText[idx])
+            break
 
     print("Average code length: ", coder.getAvgCodeLength())
     print("Code efficiency: ", coder.getCodeEfficiency())

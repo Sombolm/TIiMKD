@@ -38,8 +38,16 @@ def testFromFile():
     bincoder.save("encoded", code, encodedText)
 
     code , encodedText = bincoder.load("encoded")
-    print("First 10 decoded text from file: ", bincoder.decode(encodedText, code)[:10])
+    decodedText = bincoder.decode(encodedText, code)
+    print("First 10 decoded text from file: ", decodedText[:10])
     print("Code from file: ", code)
+    print("Length of text: ", len(text))
+    print("Length of decoded text: ", len(decodedText))
+    for idx in range(len(text)):
+        if decodedText[idx] != text[idx]:
+            print(f"Mismatch at index {idx}: {decodedText[idx]} != {text[idx]}")
+            print("Mismatched text: ", text[idx], " vs ", decodedText[idx])
+            break
 
     print("Average code length: ", bincoder.getAvgCodeLength())
     print("Code efficiency: ", bincoder.getCodeEfficiency())
